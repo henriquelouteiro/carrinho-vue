@@ -29,7 +29,7 @@ ul {
 
 body {
   background: #b57bf8;
-  font-family: "Noto Serif";
+  font-family: sans-serif;
 }
 
 #app {

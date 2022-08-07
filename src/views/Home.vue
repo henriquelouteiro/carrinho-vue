@@ -2,46 +2,102 @@
   <div>
     <NavBarVivo />
     <div class="container conteudo mb-4">
-      
-      <div class="d-flex justify-content-center align-items-center produto_header mb-2 ">
-        <h3>
-          {{ total | numeroPreco }} | {{ carrinho.length }} 
-        </h3>   
-      </div>
+      <section
+        v-for="(categoria, index) in categorias"
+        class="d-flex flex-column border-sections sec-produtos"
+        :key="index"
+      >
+        <h3>{{ categoria[0].categoria }}</h3>
+        <div class="d-flex flex-wrap produtos-box">
+          <div class="card" v-for="item in categoria" :key="item.id">
+            <div class="card-body d-flex justify-content-between flex-column">
+              <button
+                v-if="
+                  item.categoria == 'Internet' || verificarCategoriaCarrinho('Internet')
+                "
+                class="card_btn"
+                @click="adicionarCarrinho(item.id)"
+              >
+                +
+              </button>
+              <button v-else class="card_btn disabled">+</button>
+              <strong class="text-uppercase produto_titulo">{{
+                item.nome
+              }}</strong>
 
-      <section class="d-flex justify-content-center flex-wrap produtos-box border-sections">
-        <div class="card" v-for="(item, index) in produtos" :key="item.id">
-          <div class="card-body d-flex justify-content-between flex-column">
-            <strong class="text-uppercase produto_titulo ">{{ item.nome }}</strong>
-            <p class="card-text mb-2">
-              {{ item.preco | numeroPreco }}
-            </p>
-            <button
-              v-if="item.quantidade > 0"
-              class="modal_btn "
-              @click="adicionarCarrinho(index)"
-            >
-              Adicionar Item
-            </button>
-            <button v-else class="modal_btn esgotado" disabled>
-              Produto Esgotado
-            </button>
+              <p class="card-text mb-2">
+                {{ item.preco | numeroPreco }}
+              </p>
+
+              <span
+                @click="showModal(item)"
+                id="show-btn"
+                class="d-flex justify-content-end card_detalhes"
+                data-toggle="modal"
+                data-target="#exampleModalLong"
+                >+ detalhes</span
+              >
+            </div>
           </div>
         </div>
       </section>
 
-      <section class="modal" v-if="produto" @click="fecharModal">
-        <div class="modal_container">
-          <div class="modal_img"></div>
-          <img class="foto" :src="produto.foto" />
-          <div class="modal_dados">
-            <button @click="produto = false" class="modal_fechar">X</button>
-            <span class="modal_preco">{{ produto.preco | numeroPreco }}</span>
-            <h2 class="modal_titulo">{{ produto.nome }}</h2>
-            <p>{{ produto.descricao }}</p>
-          </div>
+      <section class="detalhe-compras sec-produtos">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Produto</th>
+              <th scope="col">Categoria</th>
+              <th scope="col">Valor</th>
+              <th class="d-flex justify-content-center" scope="col">Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(produto, index) in carrinho" :key="index">
+              <th scope="row">{{ produto.nome }}</th>
+              <td>{{ produto.categoria }}</td>
+              <td>{{ produto.preco | numeroPreco }}</td>
+              <td class="d-flex justify-content-center">
+                <svg
+                  @click="removerCarrinho(index)"
+                  class="less-icon MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                  ></path>
+                </svg>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="d-flex justify-content-between align-items-center">
+          <h3>Total</h3>
+          <h3>{{ total | numeroPreco }}</h3>
         </div>
       </section>
+
+      <b-modal
+        ref="my-modal"
+        hide-footer
+        :title="produto.categoria + ' | ' + produto.nome"
+      >
+        <div class="modal-body-conteudo">
+          <p>{{ produto.detalhes }}</p>
+          <button
+            v-if="
+              produto.categoria == 'Internet' || verificarCategoriaCarrinho('Internet')
+            "
+            class="card_btn modal_btn"
+            @click="adicionarCarrinho(produto.id)"
+          >
+            Adicionar
+          </button>
+        </div>
+      </b-modal>
     </div>
   </div>
 </template>
@@ -57,12 +113,10 @@ export default {
   },
   data() {
     return {
+      categorias: [],
       produtos: [],
       produto: false,
       carrinho: [],
-      carrinhoAtivo: false,
-      mensagemAlerta: "Item adicionado",
-      alertaAtivo: false,
     };
   },
   filters: {
@@ -85,7 +139,7 @@ export default {
     },
   },
   created() {
-    document.title = "VIVO [M2]";
+    document.title = "VIVO - CLONE";
     this.getProdutos();
     this.checarLocalStorage();
   },
@@ -97,6 +151,24 @@ export default {
     },
   },
   methods: {
+
+    showModal(produto) {
+      this.produto = produto;
+      this.$refs["my-modal"].show();
+    },
+    removerCarrinho(index) {
+      this.carrinho.splice(index, 1);
+    },
+    separarProdutos() {
+      let produtos = {};
+      this.produtos.forEach((produto) => {
+        if (!produtos[produto.categoria]) {
+          produtos[produto.categoria] = [];
+        }
+        produtos[produto.categoria].push(produto);
+      });
+      this.categorias = produtos;
+    },
     checarLocalStorage() {
       if (window.localStorage.carrinho)
         this.carrinho = JSON.parse(window.localStorage.carrinho);
@@ -116,31 +188,22 @@ export default {
           this.produto = r;
         });
     },
-    abrirModal(id) {
-      this.fetchProduto(id);
-    },
-    fecharModal({ target, currentTarget }) {
-      if (target === currentTarget) this.produto = false;
-    },
-    clickForaCarrinho({ target, currentTarget }) {
-      if (target === currentTarget) this.carrinhoAtivo = false;
-    },
     removerItem(index) {
-      //remover item carrinho splice
       this.carrinho.splice(index, 1);
     },
     adicionarCarrinho(index) {
-      console.log(index);
-      if (this.verificarCategoriaExistente(this.produtos[index].categoria))
+      let idx = this.produtos.findIndex((produto) => produto.id === index);
+
+      if (this.verificarCategoriaCarrinho(this.produtos[idx].categoria))
         return;
 
       this.carrinho.push({
-        nome: this.produtos[index].nome,
-        preco: this.produtos[index].preco,
-        categoria: this.produtos[index].categoria,
+        nome: this.produtos[idx].nome,
+        preco: this.produtos[idx].preco,
+        categoria: this.produtos[idx].categoria,
       });
     },
-    verificarCategoriaExistente(categoria) {
+    verificarCategoriaCarrinho(categoria) {
       let aux = false;
       this.carrinho.forEach((item) => {
         if (item.categoria === categoria) {
@@ -151,11 +214,14 @@ export default {
     },
     getProdutos() {
       //fetch("https://my-json-server.typicode.com/henriquelouteiro/api-fake/produtos")
-      fetch("https://api.figures3d.com.br/api/produtos")
+      fetch(
+        "https://my-json-server.typicode.com/henriquelouteiro/api-fake/produtos"
+      )
         .then((r) => r.json())
         .then((r) => {
           this.produtos = r;
           console.log(this.produtos);
+          this.separarProdutos();
         });
     },
   },
@@ -163,65 +229,99 @@ export default {
 </script>
 
 <style>
+
 .conteudo {
-  background: #ebebeb;
+  background: #f3f3f3;
   padding: 10px 5px;
-  border-radius: 20px;
+  border-radius: 5px;
 }
 
 /* LISTA PRODUTOS */
+.sec-produtos {
+  padding: 10px;
+}
 .produto_titulo {
   font-size: 1.5rem;
   line-height: 1;
 }
-.produto_header{
-  border: 1px solid rgb(92, 0, 100);
-  padding: 10px;
-  border-radius: 20px;
-  background: #cb9dff;
-}
+
 .produtos-box {
-  padding: 10px 0;
+  padding: 5px 0;
   gap: 10px;
 }
 
-.border-sections{
-  border-top: 3px solid rgb(44, 44, 44)
+.border-sections {
+  border-bottom: 3px solid rgb(44, 44, 44);
 }
 
-.produto {
-  display: flex;
-  align-items: center;
-  margin-bottom: 40px;
-  background: #ffffff;
-  box-shadow: 0 0 2rem rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-}
-
+/* CARD PRODUTO */
 .card {
-  width: 200px;
+  width: 205px;
+  height: 180px;
   padding: 0;
-  
-  box-shadow: inset 0 15rem 30rem rgb(243, 218, 239);
+  background: #ffffff;
+  border: 1px solidd#B57BF8;
 }
 
-/* MODAL*/
-.modal_btn {
-  background: rgb(50, 29, 58);
+.card_detalhes{
+  cursor: pointer;
+  width: max-content;
+  align-self: flex-end;
+}
+
+.card_btn {
+  width: 27px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  background: #79009e;
+  opacity: 0.6;
   cursor: pointer;
   color: #ffffff;
   border: none;
-  font-size: 1rem;
-  padding: 7px 20px;
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   font-family: "Noto Serif";
+  border-radius: 50%;
+  transition: 0.3s cubic-bezier(0.55, 0.025, 0.675, 0.96);
+}
+
+.card_btn:active {
+  background: #808080;
+}
+
+.card_btn:hover {
+  opacity: 1;
+}
+/* MODAL*/
+
+
+.modal_btn{
+  width: max-content;
+  padding: 2px 10px;
   border-radius: 100px;
 }
 
-.modal_btn.esgotado {
-  background: #2b2828;
+.modal-body-conteudo{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
 }
 
-.modal_btn:active {
+/* ICONS*/
+.disabled {
+  pointer-events: none;
+  cursor: default;
   background: #808080;
+}
+.less-icon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+@media screen and (max-width: 680px) {
+  .produtos-box {
+    justify-content: center !important;
+  }
 }
 </style>
