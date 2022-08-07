@@ -7,7 +7,9 @@
         class="d-flex flex-column border-sections sec-produtos"
         :key="index"
       >
-        <h3>{{ categoria[0].categoria }}</h3>
+        <h3 class="text-color-purple">{{ categoria[0].categoria }}</h3>
+       <p class="section-descricao" v-if="categoria[0].categoria == 'Internet'"  >Selecione um plano de internet para continuar</p>
+       <p class="section-descricao" v-else-if="verificarCategoriaCarrinho('Internet')">Agora seleciona uma das opções abaixo</p>
         <div class="d-flex flex-wrap produtos-box">
           <div class="card" v-for="item in categoria" :key="item.id">
             <div class="card-body d-flex justify-content-between flex-column">
@@ -74,9 +76,9 @@
           </tbody>
         </table>
 
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between align-items-center text-color-purple">
           <h3>Total</h3>
-          <h3>{{ total | numeroPreco }}</h3>
+          <h3>{{ total | numeroPreco }}/mês</h3>
         </div>
       </section>
 
@@ -98,6 +100,10 @@
           </button>
         </div>
       </b-modal>
+
+      <div class="alerta" :class="{ativo: alertaAtivo}">
+      <p class="alerta_mensagem">{{mensagemAlerta}}</p>
+    </div>
     </div>
   </div>
 </template>
@@ -117,6 +123,8 @@ export default {
       produtos: [],
       produto: false,
       carrinho: [],
+      mensagemAlerta: "Item adicionado",
+    alertaAtivo: false,
     };
   },
   filters: {
@@ -202,6 +210,15 @@ export default {
         preco: this.produtos[idx].preco,
         categoria: this.produtos[idx].categoria,
       });
+
+      this.alerta(`${this.produtos[idx].nome} adicionado ao carrinho.`);
+    },
+    alerta(mensagem) {
+      this.mensagemAlerta = mensagem;
+      this.alertaAtivo = true;
+      setTimeout(() => {
+        this.alertaAtivo = false;
+      }, 1500);
     },
     verificarCategoriaCarrinho(categoria) {
       let aux = false;
@@ -236,6 +253,14 @@ export default {
   border-radius: 5px;
 }
 
+.text-color-purple{
+  color: #79009e;
+}
+
+.section-descricao{
+  color: rgb(90, 90, 90);
+  font-weight: bold;
+}
 /* LISTA PRODUTOS */
 .sec-produtos {
   padding: 10px;
@@ -264,6 +289,7 @@ export default {
 }
 
 .card_detalhes{
+  color: #79009e;
   cursor: pointer;
   width: max-content;
   align-self: flex-end;
@@ -305,6 +331,31 @@ export default {
   flex-direction: column;
   gap: 10px;
 
+}
+/* ALERTA */
+
+.alerta {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  width: 100%;
+  text-align: center;
+  display: none;
+}
+
+.alerta.ativo {
+  display: block;
+  animation: fadeInDown .3s forwards;
+}
+
+.alerta_mensagem {
+  background: #ffffff;
+  display: inline-block;
+  padding: 20px 40px;
+  border: 2px solid black;
+  box-shadow: 0px 3px 4px rgba(0,0,0,.1), 0px 4px 10px rgba(0,0,0,.2);
 }
 
 /* ICONS*/
