@@ -27,7 +27,7 @@ Este projeto é inspirado em uma antiga página de compras de plano de serviços
 ### Web
 
 <p align="center" style="display: flex; align-items: flex-start; justify-content: center;">
-  <img alt="Layout Mobile" title="#Layout Mobile" src="./public/imgs/readme/assets/readme/layout-desktop.png" width="400px">
+  <img alt="Layout Mobile" title="#Layout Web" src="./public/imgs/readme/layout-desktop.png" width="400px">
 </p>
 
 ---
