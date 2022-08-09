@@ -59,7 +59,7 @@
               <th scope="row">{{ produto.nome }}</th>
               <td>{{ produto.categoria }}</td>
               <td>{{ produto.preco | numeroPreco }}</td>
-              <td class="d-flex justify-content-center">
+              <td align="center">
                 <svg
                   @click="removerCarrinho(index)"
                   class="less-icon MuiSvgIcon-root"
