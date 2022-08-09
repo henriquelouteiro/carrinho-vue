@@ -159,12 +159,18 @@ export default {
     },
   },
   methods: {
-
+    isInternet(categoria){
+      return categoria == 'Internet';
+    },
     showModal(produto) {
       this.produto = produto;
       this.$refs["my-modal"].show();
     },
     removerCarrinho(index) {
+      if(this.isInternet(this.carrinho[index].categoria)){
+        this.carrinho = [];
+        return
+      }
       this.carrinho.splice(index, 1);
     },
     separarProdutos() {
@@ -181,29 +187,20 @@ export default {
       if (window.localStorage.carrinho)
         this.carrinho = JSON.parse(window.localStorage.carrinho);
     },
-    fetchProdutos() {
-      fetch("https://api.figures3d.com.br/api/produtos")
-        .then((r) => r.json())
-        .then((r) => {
-          this.produtos = r;
-          console.log(this.produtos);
-        });
-    },
-    fetchProduto(id) {
-      fetch(`https://api.figures3d.com.br/api/produtos/${id}`)
-        .then((r) => r.json())
-        .then((r) => {
-          this.produto = r;
-        });
-    },
     removerItem(index) {
       this.carrinho.splice(index, 1);
     },
     adicionarCarrinho(index) {
       let idx = this.produtos.findIndex((produto) => produto.id === index);
 
-      if (this.verificarCategoriaCarrinho(this.produtos[idx].categoria))
-        return;
+      if (this.verificarCategoriaCarrinho(this.produtos[idx].categoria)){
+        this.mensagemAlerta = "Não é possível adicionar mais produtos desta categoria";
+        this.alertaAtivo = true;
+        setTimeout(() => {
+          this.alertaAtivo = false;
+        }, 3000);
+        return
+      }
 
       this.carrinho.push({
         nome: this.produtos[idx].nome,
