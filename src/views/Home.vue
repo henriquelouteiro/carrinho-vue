@@ -169,9 +169,11 @@ export default {
     removerCarrinho(index) {
       if(this.isInternet(this.carrinho[index].categoria)){
         this.carrinho = [];
+        this.notificacao("Todos itens removidos");
         return
       }
       this.carrinho.splice(index, 1);
+      this.notificacao("Item removido");
     },
     separarProdutos() {
       let produtos = {};
@@ -190,15 +192,18 @@ export default {
     removerItem(index) {
       this.carrinho.splice(index, 1);
     },
+    notificacao(msg) {
+      this.mensagemAlerta = msg;
+      this.alertaAtivo = true;
+      setTimeout(() => {
+        this.alertaAtivo = false;
+      }, 2000);
+    },
     adicionarCarrinho(index) {
       let idx = this.produtos.findIndex((produto) => produto.id === index);
 
       if (this.verificarCategoriaCarrinho(this.produtos[idx].categoria)){
-        this.mensagemAlerta = "Não é possível adicionar mais produtos desta categoria";
-        this.alertaAtivo = true;
-        setTimeout(() => {
-          this.alertaAtivo = false;
-        }, 3000);
+        this.notificacao("Não é possível adicionar mais produtos desta categoria")
         return
       }
 
@@ -207,15 +212,7 @@ export default {
         preco: this.produtos[idx].preco,
         categoria: this.produtos[idx].categoria,
       });
-
-      this.alerta(`${this.produtos[idx].nome} adicionado ao carrinho.`);
-    },
-    alerta(mensagem) {
-      this.mensagemAlerta = mensagem;
-      this.alertaAtivo = true;
-      setTimeout(() => {
-        this.alertaAtivo = false;
-      }, 1500);
+       this.notificacao(`${this.produtos[idx].nome} adicionado ao carrinho.`)
     },
     verificarCategoriaCarrinho(categoria) {
       let aux = false;
